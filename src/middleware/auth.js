@@ -21,4 +21,3 @@ const auth = (req, res, next) => {
 };
 
 module.exports = auth;
-// This is for authenticating the jwt tokens
