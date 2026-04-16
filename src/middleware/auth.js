@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fitforge_dev_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-dev-only';
 
 const auth = (req, res, next) => {
   const authHeader = req.header('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 
@@ -16,6 +16,7 @@ const auth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('[auth-middleware] Token verification failed:', err.message);
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

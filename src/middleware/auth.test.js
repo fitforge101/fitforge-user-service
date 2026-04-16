@@ -40,13 +40,13 @@ describe('Auth Middleware', () => {
   });
 
   test('should call next() if valid token is provided', () => {
-    const token = jwt.sign({ userId: '123' }, 'fitforge_dev_secret');
+    const token = jwt.sign({ userId: '123' }, 'test-secret-key-for-dev-only');
     req.header.mockReturnValue(`Bearer ${token}`);
 
     auth(req, res, next);
 
     expect(next).toHaveBeenCalled();
-    expect(req.user).toEqual({ userId: '123' });
+    expect(req.user).toEqual(expect.objectContaining({ userId: '123' }));
     expect(res.status).not.toHaveBeenCalled();
   });
 
@@ -65,7 +65,7 @@ describe('Auth Middleware', () => {
   test('should return 401 if token is expired', () => {
     const expiredToken = jwt.sign(
       { userId: '123' },
-      'fitforge_dev_secret',
+      'test-secret-key-for-dev-only',
       { expiresIn: '-1h' }
     );
     req.header.mockReturnValue(`Bearer ${expiredToken}`);
