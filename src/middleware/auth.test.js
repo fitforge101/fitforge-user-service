@@ -40,7 +40,7 @@ describe('Auth Middleware', () => {
   });
 
   test('should call next() if valid token is provided', () => {
-    const token = jwt.sign({ userId: '123' }, 'test-secret-key-for-dev-only');
+    const token = jwt.sign({ userId: '123' }, 'dev-token-validation-string');
     req.header.mockReturnValue(`Bearer ${token}`);
 
     auth(req, res, next);
@@ -65,7 +65,7 @@ describe('Auth Middleware', () => {
   test('should return 401 if token is expired', () => {
     const expiredToken = jwt.sign(
       { userId: '123' },
-      'test-secret-key-for-dev-only',
+      'dev-token-validation-string',
       { expiresIn: '-1h' }
     );
     req.header.mockReturnValue(`Bearer ${expiredToken}`);

@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 jest.mock('../models/Profile');
 
 describe('User Routes', () => {
-  const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-for-dev-only';
+  const JWT_SECRET = process.env.JWT_SECRET || 'dev-token-validation-string';
   let token;
 
   beforeAll(() => {
