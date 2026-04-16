@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   ci:
-    uses: fitforge101/fitforge-shared/.github/workflows/_ci-template.yml@feature/templates
+    uses: fitforge101/fitforge-shared/.github/workflows/_docker-build.yml@v2.0.0
     with:
       service-name: user-service
       service-path: .
