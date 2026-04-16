@@ -2,11 +2,11 @@ const request = require('supertest');
 const app = require('../app');
 const Profile = require('../models/Profile');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/constants');
 
 jest.mock('../models/Profile');
 
 describe('User Routes', () => {
-  const JWT_SECRET = process.env.JWT_SECRET || 'dev-token-validation-string';
   let token;
 
   beforeAll(() => {

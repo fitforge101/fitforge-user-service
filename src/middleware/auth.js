@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-token-validation-string';
+const { JWT_SECRET } = require('../config/constants');
 
 const auth = (req, res, next) => {
   const authHeader = req.header('Authorization');

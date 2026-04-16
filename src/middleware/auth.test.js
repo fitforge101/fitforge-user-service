@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const auth = require('./auth');
+const { JWT_SECRET } = require('../config/constants');
 
 describe('Auth Middleware', () => {
   let req, res, next;
@@ -40,7 +41,7 @@ describe('Auth Middleware', () => {
   });
 
   test('should call next() if valid token is provided', () => {
-    const token = jwt.sign({ userId: '123' }, 'dev-token-validation-string');
+    const token = jwt.sign({ userId: '123' }, JWT_SECRET);
     req.header.mockReturnValue(`Bearer ${token}`);
 
     auth(req, res, next);
@@ -65,7 +66,7 @@ describe('Auth Middleware', () => {
   test('should return 401 if token is expired', () => {
     const expiredToken = jwt.sign(
       { userId: '123' },
-      'dev-token-validation-string',
+      JWT_SECRET,
       { expiresIn: '-1h' }
     );
     req.header.mockReturnValue(`Bearer ${expiredToken}`);
