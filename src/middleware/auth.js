@@ -4,7 +4,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fitforge_dev_secret';
 
 const auth = (req, res, next) => {
   const authHeader = req.header('Authorization');
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
@@ -21,3 +21,4 @@ const auth = (req, res, next) => {
 };
 
 module.exports = auth;
+// This is for authenticating the jwt tokens
