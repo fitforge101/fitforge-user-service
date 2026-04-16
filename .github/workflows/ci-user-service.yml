@@ -5,18 +5,20 @@ on:
     branches: 
       - develop
       - main
-    paths:
-      - "services/user-service/**"
-      - ".github/workflows/ci-user-service.yml"
-      - ".github/workflows/_ci-template.yml"
+      - feature/ci-user-service
+    # paths:
+      # - "services/user-service/**"
+      # - ".github/workflows/ci-user-service.yml"
+      # - ".github/workflows/_ci-template.yml"
   pull_request:
     branches:
       - develop
       - main
-    paths:
-      - "services/user-service/**"
-      - ".github/workflows/ci-user-service.yml"
-      - ".github/workflows/_ci-template.yml"
+      - feature/ci-user-service
+    # paths:
+      # - "services/user-service/**"
+      # - ".github/workflows/ci-user-service.yml"
+      # - ".github/workflows/_ci-template.yml"
 
 # give the workflow permission to write to the repository contents
 permissions:
@@ -25,10 +27,10 @@ permissions:
 
 jobs:
   ci:
-    uses: ./.github/workflows/_ci-template.yml
+    uses: fitforge101/fitforge-shared/.github/workflows/_ci-template.yml@main
     with:
       service-name: user-service
-      service-path: services/user-service
+      service-path: .
       runtime: node
       node-version: "20"
       environment: ${{ github.ref_name }}

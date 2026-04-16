@@ -1,9 +1,10 @@
 const express = require('express');
 const Profile = require('../models/Profile');
+const auth = require('../middleware/auth');
 const router = express.Router();
 
 // GET /users/:userId
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.params.userId });
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
@@ -20,7 +21,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /users/:userId
-router.put('/:userId', async (req, res) => {
+router.put('/:userId', auth, async (req, res) => {
   try {
     const profile = await Profile.findOneAndUpdate(
       { userId: req.params.userId },
@@ -32,3 +33,4 @@ router.put('/:userId', async (req, res) => {
 });
 
 module.exports = router;
+	
