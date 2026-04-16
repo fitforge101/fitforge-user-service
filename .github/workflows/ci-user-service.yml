@@ -32,6 +32,6 @@ jobs:
       service-name: user-service
       service-path: .
       runtime: node
-      node-version: "22"
+      node-version: "20"
       environment: ${{ github.ref_name }}
     secrets: inherit
