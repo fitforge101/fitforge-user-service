@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const verifyToken = require('./verifyToken');
 
 describe('verifyToken middleware', () => {
-  const JWT_SECRET = process.env.JWT_SECRET || 'fitforge_dev_secret';
+  const JWT_SECRET = process.env.JWT_SECRET || 'fitforge_dev_secret'; // NOSONAR
   let mockReq;
   let mockRes;
   let nextFunction;
@@ -54,7 +54,7 @@ describe('verifyToken middleware', () => {
   });
 
   it('should return 401 if token is signed with wrong secret', () => {
-    const token = jwt.sign({ userId: '12345' }, 'wrong_secret');
+    const token = jwt.sign({ userId: '12345' }, 'wrong_secret'); // NOSONAR
     mockReq.headers.authorization = `Bearer ${token}`;
 
     verifyToken(mockReq, mockRes, nextFunction);

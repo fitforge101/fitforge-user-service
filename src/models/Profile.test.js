@@ -1,14 +1,14 @@
+// MockSchema defined at outer scope (SonarQube maintainability requirement)
+function MockSchema(definition, options) {
+  this.definition = definition;
+  this.options = options;
+}
+
 // Mock mongoose before importing the model to avoid real DB connections
-jest.mock('mongoose', () => {
-  function MockSchema(definition, options) {
-    this.definition = definition;
-    this.options = options;
-  }
-  return {
-    Schema: MockSchema,
-    model: jest.fn().mockReturnValue({ mockModel: true }),
-  };
-});
+jest.mock('mongoose', () => ({
+  Schema: MockSchema,
+  model: jest.fn().mockReturnValue({ mockModel: true }),
+}));
 
 const mongoose = require('mongoose');
 
