@@ -8,6 +8,11 @@ router.use(verifyToken);
 
 // GET /users/:userId
 router.get('/:userId', async (req, res) => {
+  // Authorization check: User can only access their own profile
+  if (req.user.userId !== req.params.userId) {
+    return res.status(403).json({ message: 'Forbidden: Access denied' });
+  }
+
   try {
     const profile = await Profile.findOne({ userId: req.params.userId });
     if (!profile) return res.status(404).json({ message: 'Profile not found' });
@@ -15,8 +20,13 @@ router.get('/:userId', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// POST /users  — create profile after signup
+// POST /users — create profile after signup
 router.post('/', async (req, res) => {
+  // Ensure the profile being created matches the authenticated user
+  if (req.user.userId !== req.body.userId) {
+    return res.status(403).json({ message: 'Forbidden: You can only create your own profile' });
+  }
+
   try {
     const profile = await Profile.create(req.body);
     res.status(201).json(profile);
@@ -25,6 +35,11 @@ router.post('/', async (req, res) => {
 
 // PUT /users/:userId
 router.put('/:userId', async (req, res) => {
+  // Authorization check: User can only update their own profile
+  if (req.user.userId !== req.params.userId) {
+    return res.status(403).json({ message: 'Forbidden: Access denied' });
+  }
+
   try {
     const profile = await Profile.findOneAndUpdate(
       { userId: req.params.userId },
