@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken');
 // Shared secret pattern used across all microservices
 const JWT_SECRET = process.env.JWT_SECRET || 'fitforge_dev_secret';
 
-module.exports = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'No token provided' });
   }
 
@@ -21,3 +21,5 @@ module.exports = (req, res, next) => {
     res.status(401).json({ message: 'Invalid or expired token' });
   }
 };
+
+module.exports = verifyToken;
