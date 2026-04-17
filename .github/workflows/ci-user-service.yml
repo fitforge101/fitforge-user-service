@@ -1,35 +1,95 @@
-name: CI — User Service
+name: CI/CD — User Service
 
 on:
   push:
-    branches: 
+    branches:
       - develop
       - main
-    paths:
-      - "services/user-service/**"
-      - ".github/workflows/ci-user-service.yml"
-      - ".github/workflows/_ci-template.yml"
+      # - feature/ci-user-service
   pull_request:
     branches:
       - develop
       - main
-    paths:
-      - "services/user-service/**"
-      - ".github/workflows/ci-user-service.yml"
-      - ".github/workflows/_ci-template.yml"
-
-# give the workflow permission to write to the repository contents
+      # - feature/ci-user-service
 permissions:
   contents: write
 
-
 jobs:
-  ci:
-    uses: ./.github/workflows/_ci-template.yml
+  sast:
+    if: github.event_name == 'pull_request'
+    uses: fitforge101/fitforge-shared/.github/workflows/_sast.yml@v2.0.0
+    with:
+      service-path: .
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_URL: ${{ secrets.SONAR_URL }}
+
+  # ─── SCA (Snyk) ───
+  sca:
+    needs: [sast]
+    if: github.event_name == 'pull_request'
+    uses: fitforge101/fitforge-shared/.github/workflows/_sca.yml@v2.0.0
     with:
       service-name: user-service
-      service-path: services/user-service
+      service-path: .
       runtime: node
-      node-version: "20"
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # ─── Notify: Snyk Criticals ───
+  notify-snyk:
+    needs: [sca]
+    if: needs.sca.outputs.critical-found == 'true'
+    uses: fitforge101/fitforge-shared/.github/workflows/_notify.yml@v2.0.0
+    with:
+      subject: "🚨 Snyk: Critical Vulnerabilities in user-service"
+      body: "Critical/High vulnerabilities found in user-service dependencies."
+      service-name: user-service
+      artifact-name: snyk-report-user-service
+    secrets:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+
+  # ─── Temp Docker Build + Trivy Scan ───
+  build:
+    needs: [sast, sca]
+    if: github.event_name == 'pull_request'
+    uses: fitforge101/fitforge-shared/.github/workflows/_docker-build.yml@v2.0.0
+    with:
+      service-name: user-service
+      service-path: .
+
+  # ─── Notify: Trivy Criticals ───
+  notify-trivy:
+    needs: [build]
+    if: needs.build.outputs.trivy-critical == 'true'
+    uses: fitforge101/fitforge-shared/.github/workflows/_notify.yml@v2.0.0
+    with:
+      subject: "🚨 Trivy: Critical Vulnerabilities in user-service"
+      body: "CRITICAL vulnerabilities found in user-service Docker image."
+      service-name: user-service
+      artifact-name: trivy-user-service
+    secrets:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+
+  # ─── Publish Docker Image (Tag + Build + Push) ───
+  publish:
+    if: github.event_name == 'push'
+    uses: fitforge101/fitforge-shared/.github/workflows/_docker-publish.yml@v2.0.0
+    with:
+      service-name: user-service
       environment: ${{ github.ref_name }}
-    secrets: inherit
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  # ──── Update Helm Chart (CD) ────
+  cd:
+    needs: [publish]
+    if: needs.publish.result == 'success'
+    uses: fitforge101/fitforge-shared/.github/workflows/_cd-template.yml@feature/templates
+    with:
+      service-name: user-service
+      image-tag: ${{ needs.publish.outputs.image-tag }}
+      environment: ${{ github.ref_name }}
+    secrets:
+      HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
