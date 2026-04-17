@@ -35,3 +35,77 @@ jobs:
       node-version: "20"
       environment: ${{ github.ref_name }}
     secrets: inherit
+
+  # update-helm-values:
+  #   runs-on: ubuntu-latest
+  #   needs: ci
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #     # Step 1: Determine which values file to update
+  #     - name: Set values file path
+  #       id: values
+  #       run: |
+  #         if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+  #           echo "file=microservices/user-service/values.yaml" >> $GITHUB_OUTPUT
+  #         echo "branch=feature/re-helmified" >> $GITHUB_OUTPUT
+  #         elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+  #           echo "file=microservices/user-service/values-dev.yaml" >> $GITHUB_OUTPUT
+  #           echo "branch=feature/re-helmified" >> $GITHUB_OUTPUT
+  #         else
+  #           echo "file=" >> $GITHUB_OUTPUT
+  #           echo "Skipping Helm update for feature branch"
+  #           exit 0
+  #         fi
+
+  #     # Step 2: Clone fitforge-helm repository
+  #     - name: Checkout fitforge-helm
+  #       if: steps.values.outputs.file != ''
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: fitforge101/fitforge-helm
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         ref: ${{ steps.values.outputs.branch }}
+  #         path: fitforge-helm
+
+  #     # Step 3: Install yq for YAML editing
+  #     - name: Install yq
+  #       if: steps.values.outputs.file != ''
+  #       run: |
+  #         sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+  #         sudo chmod +x /usr/local/bin/yq
+
+  #     # Step 4: Update image tag in values file
+  #     - name: Update Helm values with new image tag
+  #       if: steps.values.outputs.file != ''
+  #       run: |
+  #         cd fitforge-helm
+          
+  #         # Get the image tag (using git commit SHA)
+  #         IMAGE_TAG="${{ github.sha }}"
+          
+  #         # Update the tag in the values file
+  #         yq eval ".image.tag = \"${IMAGE_TAG}\"" -i ${{ steps.values.outputs.file }}
+          
+  #         # Verify the change
+  #         echo "Updated image tag to: ${IMAGE_TAG}"
+  #         yq eval ".image.tag" ${{ steps.values.outputs.file }}
+
+  #     # Step 5: Commit and push changes
+  #     - name: Commit and push Helm values
+  #       if: steps.values.outputs.file != ''
+  #       run: |
+  #         cd fitforge-helm
+          
+  #         # Configure git
+  #         git config user.name "github-actions[bot]"
+  #         git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+  #         # Stage and commit
+  #         git add ${{ steps.values.outputs.file }}
+  #         git commit -m "chore: update user-service image tag to ${{ github.sha }}" \
+  #           -m "Branch: ${{ github.ref }}" \
+  #           -m "Workflow: ${{ github.workflow }}"
+          
+  #         # Push to remote
+  #         git push origin ${{ steps.values.outputs.branch }}
