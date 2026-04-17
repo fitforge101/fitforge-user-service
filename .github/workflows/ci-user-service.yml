@@ -82,7 +82,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  # ─── Update Helm Chart (CD) ───
+  # ──── Update Helm Chart (CD) ────
   cd:
     needs: [publish]
     if: needs.publish.result == 'success'
