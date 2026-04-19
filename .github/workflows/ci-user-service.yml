@@ -5,16 +5,16 @@ on:
     branches:
       - develop
       - main
-      # - feature/ci-user-service
   pull_request:
     branches:
       - develop
       - main
-      # - feature/ci-user-service
+
 permissions:
   contents: write
 
 jobs:
+  # ─── SAST ───
   sast:
     if: github.event_name == 'pull_request'
     uses: fitforge101/fitforge-shared/.github/workflows/_sast.yml@v2.0.0
@@ -71,25 +71,59 @@ jobs:
     secrets:
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
 
-  # ─── Publish Docker Image (Tag + Build + Push) ───
-  publish:
+  # ─── 🚀 NEW: Publish to AWS ECR using OIDC ───
+  publish-ecr:
+    name: Publish to AWS ECR (OIDC)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: github.event_name == 'push'
-    uses: fitforge101/fitforge-shared/.github/workflows/_docker-publish.yml@v2.0.0
-    with:
-      service-name: user-service
-      environment: ${{ github.ref_name }}
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # ──── Update Helm Chart (CD) ────
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::427553887573:role/github-actions-ecr-user-service
+          aws-region: ap-south-1
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin 427553887573.dkr.ecr.ap-south-1.amazonaws.com
+
+      - name: Build Docker Image
+        run: |
+          docker build -t 427553887573.dkr.ecr.ap-south-1.amazonaws.com/user-service:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push 427553887573.dkr.ecr.ap-south-1.amazonaws.com/user-service:${{ github.sha }}
+
+  # ─── ❌ DISABLED OLD DOCKERHUB PUBLISH ───
+  # publish:
+  #   if: false
+  #   uses: fitforge101/fitforge-shared/.github/workflows/_docker-publish.yml@v2.0.0
+  #   with:
+  #     service-name: user-service
+  #     environment: ${{ github.ref_name }}
+  #   secrets:
+  #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  # ─── CD (Helm Update) ───
   cd:
-    needs: [publish]
-    if: needs.publish.result == 'success'
+    needs: [publish-ecr]
+    if: needs.publish-ecr.result == 'success'
     uses: fitforge101/fitforge-shared/.github/workflows/_cd-template.yml@feature/templates
     with:
       service-name: user-service
-      image-tag: ${{ needs.publish.outputs.image-tag }}
+      image-tag: ${{ github.sha }}
       environment: ${{ github.ref_name }}
     secrets:
       HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
