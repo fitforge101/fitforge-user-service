@@ -5,11 +5,12 @@ on:
     branches:
       - develop
       - main
+      - feature/ci-user-service
   pull_request:
     branches:
       - develop
       - main
-
+      - feature/ci-user-service
 permissions:
   contents: write
 
@@ -104,6 +105,9 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push 427553887573.dkr.ecr.ap-south-1.amazonaws.com/user-service:${{ github.sha }}
+      
+      - name: Verify ECR Images
+        run: aws ecr describe-images --repository-name user-service
 
   # ─── ❌ DISABLED OLD DOCKERHUB PUBLISH ───
   # publish:
@@ -117,13 +121,13 @@ jobs:
   #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   # ─── CD (Helm Update) ───
-  cd:
-    needs: [publish-ecr]
-    if: needs.publish-ecr.result == 'success'
-    uses: fitforge101/fitforge-shared/.github/workflows/_cd-template.yml@feature/templates
-    with:
-      service-name: user-service
-      image-tag: ${{ github.sha }}
-      environment: ${{ github.ref_name }}
-    secrets:
-      HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
+  # cd:
+  #   needs: [publish-ecr]
+  #   if: needs.publish-ecr.result == 'success'
+  #   uses: fitforge101/fitforge-shared/.github/workflows/_cd-template.yml@feature/templates
+  #   with:
+  #     service-name: user-service
+  #     image-tag: ${{ github.sha }}
+  #     environment: ${{ github.ref_name }}
+  #   secrets:
+  #     HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
