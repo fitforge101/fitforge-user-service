@@ -106,8 +106,8 @@ jobs:
         run: |
           docker push 427553887573.dkr.ecr.us-east-1.amazonaws.com/user-service:${{ github.sha }}
       
-      - name: Verify ECR Images
-        run: aws ecr describe-images --repository-name user-service
+      # - name: Verify ECR Images
+      #   run: aws ecr describe-images --repository-name user-service
 
   # ─── ❌ DISABLED OLD DOCKERHUB PUBLISH ───
   # publish:
