@@ -98,7 +98,7 @@ jobs:
   dast:
     name: DAST Scan (Post-CD)
     needs: [publish, cd]
-    if: github.event_name == 'push' && ((github.ref_name == 'feature/ci-user-service' && needs.publish.result == 'success') || ((github.ref_name == 'develop' || github.ref_name == 'main') && needs.cd.result == 'success'))
+    if: always() && github.event_name == 'push' && ((github.ref_name == 'feature/ci-user-service' && needs.publish.result == 'success') || ((github.ref_name == 'develop' || github.ref_name == 'main') && needs.cd.result == 'success'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
