@@ -110,6 +110,7 @@ jobs:
         run: |
           if [ -z "${{ env.DAST_TARGET_URL }}" ]; then
             echo "Repository variable DAST_TARGET_URL is required (example: https://fitforge360.in)." >&2
+            # Adding this as a secret in for the repo
             exit 1
           fi
           echo "Using DAST target: ${{ env.DAST_TARGET_URL }}"
