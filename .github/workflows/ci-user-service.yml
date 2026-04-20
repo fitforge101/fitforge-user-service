@@ -6,7 +6,6 @@ on:
       - develop
       - main
       - feature/ci-user-service
-      - dast
   pull_request:
     branches:
       - develop
@@ -96,57 +95,57 @@ jobs:
       HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
 
   # ─── DAST (Post-CD Trial) ───
-  # dast:
-  #   name: DAST Scan (Post-CD)
-  #   needs: [publish, cd]
-  #   if: github.event_name == 'push' && ((github.ref_name == 'dast' && needs.publish.result == 'success') || ((github.ref_name == 'develop' || github.ref_name == 'main') && needs.cd.result == 'success'))
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 20
-  #   env:
-  #     SERVICE_NAME: "user-service"
-  #     DAST_TARGET_URL: ${{ vars.DAST_TARGET_URL }}
-  #   steps:
-  #     - name: Validate DAST target
-  #       shell: bash
-  #       run: |
-  #         if [ -z "${{ env.DAST_TARGET_URL }}" ]; then
-  #           echo "Repository variable DAST_TARGET_URL is required (example: https://fitforge360.in)." >&2
-  #           exit 1
-  #         fi
-  #         echo "Using DAST target: ${{ env.DAST_TARGET_URL }}"
+  dast:
+    name: DAST Scan (Post-CD)
+    needs: [publish, cd]
+    if: github.event_name == 'push' && ((github.ref_name == 'feature/ci-user-service' && needs.publish.result == 'success') || ((github.ref_name == 'develop' || github.ref_name == 'main') && needs.cd.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SERVICE_NAME: "user-service"
+      DAST_TARGET_URL: ${{ vars.DAST_TARGET_URL }}
+    steps:
+      - name: Validate DAST target
+        shell: bash
+        run: |
+          if [ -z "${{ env.DAST_TARGET_URL }}" ]; then
+            echo "Repository variable DAST_TARGET_URL is required (example: https://fitforge360.in)." >&2
+            exit 1
+          fi
+          echo "Using DAST target: ${{ env.DAST_TARGET_URL }}"
 
-  #     - name: Run ZAP baseline scan
-  #       uses: zaproxy/action-baseline@v0.14.0
-  #       with:
-  #         target: ${{ env.DAST_TARGET_URL }}
-  #         fail_action: false
-  #         cmd_options: >-
-  #           -a -j -m 5 -T 60 -I
-  #           -r zap-report.html
-  #           -w zap-report.md
-  #           -J zap-report.json
+      - name: Run ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ env.DAST_TARGET_URL }}
+          fail_action: false
+          cmd_options: >-
+            -a -j -m 5 -T 60 -I
+            -r zap-report.html
+            -w zap-report.md
+            -J zap-report.json
 
-  #     - name: Normalize report site label
-  #       if: always()
-  #       shell: bash
-  #       run: |
-  #         if [ -f zap-report.html ]; then
-  #           sed -i "s#Site:[[:space:]]*<a[^>]*>[^<]*</a>#Site: <a>${{ env.SERVICE_NAME }}</a>#g" zap-report.html || true
-  #         fi
-  #         if [ -f zap-report.md ]; then
-  #           sed -i "s#${{ env.DAST_TARGET_URL }}#${{ env.SERVICE_NAME }}#g" zap-report.md || true
-  #         fi
-  #         if [ -f zap-report.json ]; then
-  #           sed -i "s#${{ env.DAST_TARGET_URL }}#${{ env.SERVICE_NAME }}#g" zap-report.json || true
-  #         fi
+      - name: Normalize report site label
+        if: always()
+        shell: bash
+        run: |
+          if [ -f zap-report.html ]; then
+            sed -i "s#Site:[[:space:]]*<a[^>]*>[^<]*</a>#Site: <a>${{ env.SERVICE_NAME }}</a>#g" zap-report.html || true
+          fi
+          if [ -f zap-report.md ]; then
+            sed -i "s#${{ env.DAST_TARGET_URL }}#${{ env.SERVICE_NAME }}#g" zap-report.md || true
+          fi
+          if [ -f zap-report.json ]; then
+            sed -i "s#${{ env.DAST_TARGET_URL }}#${{ env.SERVICE_NAME }}#g" zap-report.json || true
+          fi
 
-  #     - name: Upload DAST report artifacts
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: dast-report-user-service
-  #         path: |
-  #           zap-report.html
-  #           zap-report.md
-  #           zap-report.json
-  #         if-no-files-found: warn
+      - name: Upload DAST report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-report-user-service
+          path: |
+            zap-report.html
+            zap-report.md
+            zap-report.json
+          if-no-files-found: warn
