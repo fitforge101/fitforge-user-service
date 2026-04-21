@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - main
-      - feature/ci-user-service
+      # - feature/ci-user-service
   pull_request:
     branches:
       - develop
