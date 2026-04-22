@@ -27,8 +27,8 @@ The `user-service` is responsible for storing and managing detailed user profile
 *Response:*
 ```json
 {
-  "_id": "64b2c3d4e5f678901234567a",
-  "userId": "64a1b2c3d4e5f67890123456",
+  "_id": "xxxxxxxxx",
+  "userId": "xxxxxxxxxxx",
   "name": "Jane Doe",
   "age": 28,
   "weightKg": 65,
